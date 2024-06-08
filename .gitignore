@@ -3,3 +3,4 @@
 *.db
 *.txt
 target/
+.user.yml
