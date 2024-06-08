@@ -1,0 +1,78 @@
+---
+
+version: 2
+
+models:
+  - name: dim_date
+    description: "Temporal dimension enabling slicing by day of week, month, public holiday, etc"
+    columns:
+      - name: date_key
+        description: "The primary key for this table"
+        data_tests:
+          - unique
+          - not_null
+      - name: week_day
+        description: "Day number in week (1 == Monday ... 7 == Sunday)"
+        data_tests:
+          - not_null
+          - in_range:
+              min: 1
+              max: 7
+      - name: day_name
+        description: "Name of day (eg. Monday)"
+        data_tests:
+          - not_null
+          - accepted_values:
+              values:
+                - Monday
+                - Tuesday
+                - Wednesday
+                - Thursday
+                - Friday
+                - Saturday
+                - Sunday
+      - name: month
+        description: "Month as a numeric value (ranges from 1 to 12)"
+        data_tests:
+          - in_range:
+              min: 1
+              max: 12
+
+  - name: dim_hour
+    description: "Temporal dimension for slicing by hour and other hour related characteristics"
+    columns:
+      - name: hour_key
+        description: "Primary key"
+        data_tests:
+          - unique
+          - not_null
+      - name: animal_type
+        description: "Type of animals that mainly work at this hour"
+        data_tests:
+          - not_null
+          - accepted_values:
+              values:
+                - Nocturnal bird or vampire
+                - Early bird
+                - Slacker or unemployed
+                - Likely lives alone
+
+  - name: fact_word_count
+    description: "Daily word counts disaggregated by date and sender"
+    columns:
+      - name: date_key
+        description: "Date when word was sent (foreign key to dim_date)"
+        data_tests:
+          - not_null
+      - name: sender
+        description: "Phone number or contact name that sent word"
+      - name: word
+        description: "Word that was sent"
+        data_tests:
+          - not_null
+          - not_blank
+      - name: count
+        description: "Number of times word has been sent"
+        data_tests:
+          - not_null
+          - is_positive_integer

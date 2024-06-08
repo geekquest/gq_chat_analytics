@@ -1,0 +1,6 @@
+gq_transformations:
+  target: dev
+  outputs:
+    dev:
+      type: duckdb
+      path: gq_analytics.db

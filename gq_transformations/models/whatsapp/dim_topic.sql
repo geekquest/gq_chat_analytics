@@ -1,0 +1,33 @@
+{{ config(materialized="table") }}
+SELECT
+    UUID() AS topic_key,
+    UNNEST([
+        'api',
+        'c#',
+        'css',
+        'dart',
+        'elixir',
+        'django',
+        'flask',
+        'fastapi',
+        'flutter',
+        'golang',
+        'graphql',
+        'grpc',
+        'html',
+        'java',
+        'javascript',
+        'laravel',
+        'ictam',
+        'phoenix',
+        'php',
+        'python',
+        'rails',
+        'react',
+        'rest',
+        'ruby',
+        'rust',
+        'typescript',
+        'vue',
+        'zig'
+    ]) AS topic
