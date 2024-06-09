@@ -30,10 +30,34 @@ class Date:
     holiday: str | None
 
 
-CHAT_HEADER_REGEX = re.compile(
+@dataclass
+class Locale:
+    message_header_format: re.Pattern
+    date_format: str
+
+
+WALTER_CHAT_HEADER_REGEX = re.compile(
+    r"^(?P<date>\d{2}/\d{2}/\d{4}, \d{2}:\d{2}) - (?P<sender>[^:]+:)?\s*(?P<message>.*)$"
+)
+WALTER_CHAT_TIMESTAMP_FORMAT = "%d/%m/%Y, %H:%M"
+
+
+ZIKANI_CHAT_HEADER_REGEX = re.compile(
     r"^(?P<date>\d{1,2}/\d{1,2}/\d{2}, \d{1,2}:\d{2}\u202f[AP]M) - (?P<sender>[^:]+:)?\s*(?P<message>.*)$"
 )
-CHAT_TIMESTAMP_FORMAT = "%m/%d/%y, %I:%M\u202f%p"
+ZIKANI_CHAT_TIMESTAMP_FORMAT = "%m/%d/%y, %I:%M\u202f%p"
+
+
+LOCALES = {
+    "walter": Locale(
+        message_header_format=WALTER_CHAT_HEADER_REGEX,
+        date_format=WALTER_CHAT_TIMESTAMP_FORMAT,
+    ),
+    "zikani": Locale(
+        message_header_format=ZIKANI_CHAT_HEADER_REGEX,
+        date_format=ZIKANI_CHAT_TIMESTAMP_FORMAT,
+    ),
+}
 
 
 def main() -> None:
@@ -57,22 +81,25 @@ def main() -> None:
 
 def parse_whatsapp_chats(lines: Iterable[str]) -> Iterable[Chat]:
     chats: list[Chat] = []
+    locale: Locale | None = None
 
     date: str | None = None
     sender: str | None = None
     message = io.StringIO()
 
     for line in lines:
-        match = CHAT_HEADER_REGEX.match(line)
+        match = match_chat_header(line)
 
         if not match:
             message.write(" ")
             message.write(line.strip())
             continue
 
+        locale, match = match
+
         if date:
             chat = Chat(
-                timestamp=datetime.datetime.strptime(date, CHAT_TIMESTAMP_FORMAT),
+                timestamp=datetime.datetime.strptime(date, locale.date_format),
                 sender=sender,
                 message=message.getvalue(),
             )
@@ -82,15 +109,28 @@ def parse_whatsapp_chats(lines: Iterable[str]) -> Iterable[Chat]:
         sender = match["sender"] and match["sender"].rstrip(":")
         message = io.StringIO(initial_value=match["message"])
 
+    if locale is None:
+        raise RuntimeError("Failed to detect chats locale")
+
     if date is not None:
         chat = Chat(
-            timestamp=datetime.datetime.strptime(date, CHAT_TIMESTAMP_FORMAT),
+            timestamp=datetime.datetime.strptime(date, locale.date_format),
             sender=sender,
             message=message.getvalue(),
         )
         chats.append(chat)
 
+    print(f"chats: {len(chats)}")
     return chats
+
+
+def match_chat_header(line) -> tuple[Locale, re.Match[str]] | None:
+    for locale in LOCALES.values():
+        match = locale.message_header_format.match(line)
+        if match:
+            return locale, match
+
+    return None
 
 
 def get_calendar(
