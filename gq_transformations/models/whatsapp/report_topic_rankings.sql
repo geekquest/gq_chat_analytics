@@ -11,6 +11,8 @@ SELECT
 FROM {{ ref("fact_word_count") }} AS words
 INNER JOIN {{ ref("dim_topic") }} AS topic
     ON topic.topic = words.word
+INNER JOIN {{ ref("dim_date") }} AS dim_date
+    USING (date_key)
 GROUP BY
     words.date_key,
     dim_date.day_name,

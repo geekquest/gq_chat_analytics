@@ -52,10 +52,11 @@ models:
           - not_null
           - accepted_values:
               values:
-                - Nocturnal bird or vampire
+                - Nocturnal bird
                 - Early bird
-                - Slacker or unemployed
-                - Likely lives alone
+                - Slacker
+                - Anti-social
+                - Loner
 
   - name: fact_word_count
     description: "Daily word counts disaggregated by date and sender"
